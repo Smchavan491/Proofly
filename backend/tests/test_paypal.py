@@ -2,6 +2,7 @@ import asyncio
 
 import httpx
 import pytest
+from scripts import check_paypal as check_paypal_script
 
 from app.paypal.auth import PayPalAuth
 from app.paypal.client import MockPayPalClient, PayPalClient, get_paypal_client
@@ -121,3 +122,31 @@ async def test_polling_disputes_once_then_cancels():
     with pytest.raises(asyncio.CancelledError):
         await poll_disputes(Client(), handler, interval=60)
     assert seen == ["D1"]
+
+
+@pytest.mark.asyncio
+async def test_auth_check_forces_real_client_and_prints_only_success(monkeypatch, capsys):
+    class Auth:
+        async def get_token(self):
+            assert __import__("os").environ["MOCK_PAYPAL"] == "false"
+            return "must-not-be-printed"
+    class Client:
+        auth = Auth()
+        async def close(self): pass
+    monkeypatch.setattr(check_paypal_script, "load_dotenv", lambda *args, **kwargs: None)
+    monkeypatch.setattr("app.paypal.client.get_paypal_client", lambda: Client())
+    assert await check_paypal_script.check() == 0
+    assert capsys.readouterr().out.strip() == "PayPal sandbox auth OK"
+
+
+@pytest.mark.asyncio
+async def test_auth_check_prints_only_error_type(monkeypatch, capsys):
+    class Auth:
+        async def get_token(self): raise RuntimeError("secret token and credentials")
+    class Client:
+        auth = Auth()
+        async def close(self): pass
+    monkeypatch.setattr(check_paypal_script, "load_dotenv", lambda *args, **kwargs: None)
+    monkeypatch.setattr("app.paypal.client.get_paypal_client", lambda: Client())
+    assert await check_paypal_script.check() == 1
+    assert capsys.readouterr().out.strip() == "RuntimeError"
