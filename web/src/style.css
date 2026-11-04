@@ -1,0 +1,12 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #172033;
+  background: #f5f7fb;
+  font-synthesis: none;
+}
+
+body { margin: 0; }
+main { max-width: 960px; margin: 0 auto; padding: 64px 24px; }
+h1 { margin-bottom: 8px; font-size: 2.5rem; }
+main > p { color: #5d687b; }
+section { margin-top: 48px; padding: 32px; border: 1px solid #dfe5ef; border-radius: 12px; background: white; }
