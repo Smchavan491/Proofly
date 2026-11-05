@@ -23,6 +23,9 @@ class PayPalClient:
     async def capture_order(self, order_id: str) -> dict[str, Any]:
         return await self.orders.capture_order(order_id)
 
+    async def get_order(self, order_id: str) -> dict[str, Any]:
+        return await self.orders.get_order(order_id)
+
     async def list_disputes(self, **params: Any) -> dict[str, Any]:
         return await self.disputes.list_disputes(**params)
 
@@ -62,6 +65,9 @@ class MockPayPalClient:
         result = {**self.orders_by_id[order_id], "status": "COMPLETED"}
         self.orders_by_id[order_id] = result
         return result
+
+    async def get_order(self, order_id: str) -> dict[str, Any]:
+        return self.orders_by_id[order_id]
 
     async def list_disputes(self, **params: Any) -> dict[str, Any]:
         return {"items": list(self.disputes_by_id.values()), "count": len(self.disputes_by_id)}

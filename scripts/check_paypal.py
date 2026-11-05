@@ -2,34 +2,19 @@
 
 import asyncio
 import os
+import sys
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-def load_dotenv(path: Path) -> None:
-    """Load basic KEY=VALUE entries without replacing variables already set."""
-    if not path.is_file():
-        return
-    for raw_line in path.read_text(encoding="utf-8").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("export "):
-            line = line[7:].lstrip()
-        key, separator, value = line.partition("=")
-        key = key.strip()
-        if not separator or not key or not key.replace("_", "a").isalnum() or key[0].isdigit():
-            continue
-        value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
-            value = value[1:-1]
-        elif " #" in value:
-            value = value.split(" #", 1)[0].rstrip()
-        os.environ.setdefault(key, value)
+from scripts.env import load_env
 
 
 async def check() -> int:
     project_root = Path(__file__).resolve().parents[1]
-    load_dotenv(project_root / ".env")
+    load_env(project_root / ".env")
     backend_path = str(project_root / "backend")
     if backend_path not in os.sys.path:
         os.sys.path.insert(0, backend_path)
